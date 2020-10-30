@@ -451,7 +451,7 @@ public class DataTemplate<T extends ASQLContext<?>> {
 
     /**
      * Executes a query given a SQL statement: it will be used to create a PreparedStatement.
-     * Then a list of arguments will be bind to the query.
+     * Then a list of arguments will be bound to the query.
      * The {@link ResultSetExtractor} implementation will read the ResultSet.
      * @param sql the query to execute
      * @param args arguments to bind to the query
@@ -465,7 +465,7 @@ public class DataTemplate<T extends ASQLContext<?>> {
 
     /**
      * Executes a query given a SQL statement: it will be used to create a PreparedStatement.
-     * Then a list of arguments will be bind to the query.
+     * Then a list of arguments will be bound to the query.
      * Each row of the ResultSet will be map to a result object via a {@link RowMapper} implementation.
      * @param sql the query to execute
      * @param args arguments to bind to the query
@@ -479,7 +479,7 @@ public class DataTemplate<T extends ASQLContext<?>> {
 
     /**
      * Executes a query given a SQL statement: it will be used to create a PreparedStatement.
-     * Then a list of arguments will be bind to the query.
+     * Then a list of arguments will be bound to the query.
      * Each row of the ResultSet will be map to a result object via a {@link RowMapper} implementation.
      *
      * <p>Note: use of this method is discouraged when the query doesn't supply exactly one row. 
