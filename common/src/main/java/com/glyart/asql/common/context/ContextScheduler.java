@@ -31,7 +31,7 @@ public interface ContextScheduler {
     void sync(@NonNull Runnable runnable, long delay, long period);
 
     /**
-     * Executes an asynchronous task which will be only ran once.
+     * Executes an synchronous task which will be only ran once.
      * @param runnable The task to run
      */
     void sync(@NonNull Runnable runnable);

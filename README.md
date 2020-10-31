@@ -14,7 +14,7 @@ An efficient library for dealing with databases asynchronously
 	<dependencies>
 	    <dependency>
 	        <groupId>com.github.Glyart</groupId>
-	        <artifactId>aSQL</artifactId>
+	        <artifactId>aSQL-<context></artifactId>
 	        <version>VERSION</version>
 	        <scope>compile</scope>
 	    </dependency>

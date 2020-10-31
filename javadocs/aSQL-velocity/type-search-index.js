@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes","url":"allclasses-index.html"},{"p":"com.glyart.asql.velocity","l":"ASQLVelocityScheduler"},{"p":"com.glyart.asql.velocity","l":"VelocityASQLContext.ContextBuilder"},{"p":"com.glyart.asql.velocity","l":"VelocityASQLContext"}]
