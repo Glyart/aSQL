@@ -1,7 +1,6 @@
 package com.glyart.asql.common.database;
 
 import com.google.common.base.Preconditions;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,7 +11,7 @@ import java.util.Properties;
  * Multiple different connections can be established by building other DataSourceCredentials instances.
  * @see DataSourceCredentialsBuilder
  */
-@Getter
+@SuppressWarnings("unused")
 public class DataSourceCredentials {
 
     @Nullable
@@ -56,6 +55,35 @@ public class DataSourceCredentials {
 
     public static DataSourceCredentialsBuilder builder() {
         return new DataSourceCredentialsBuilder();
+    }
+
+    @Nullable
+    public Properties getProperties() {
+        return this.properties;
+    }
+
+    @NotNull
+    public String getHostname() {
+        return this.hostname;
+    }
+
+    public int getPort() {
+        return this.port;
+    }
+
+    @NotNull
+    public String getUsername() {
+        return this.username;
+    }
+
+    @Nullable
+    public String getPassword() {
+        return this.password;
+    }
+
+    @Nullable
+    public String getDatabase() {
+        return this.database;
     }
 
     /**

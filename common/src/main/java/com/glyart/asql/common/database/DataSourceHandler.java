@@ -4,7 +4,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Represents the interaction logic for a data source.
