@@ -500,7 +500,7 @@ public class DataTemplate<T extends ASQLContext<?>> {
      * Gets a connection using {@link DataSourceHandler}'s implementation.
      * This method's failures are fatal and definitely blocks {@link DataTemplate}'s access operations.
      * If that occurs then an error will be logged.
-     * @return an active connection ready to be used
+     * @return an active connection ready to be used (if it's available)
      */
     @Nullable
     protected Connection getConnection() {
@@ -522,7 +522,7 @@ public class DataTemplate<T extends ASQLContext<?>> {
      * The connection will be available by accessing the returned CompletableFuture object,
      * with {@link CompletableFuture#whenComplete(BiConsumer)} method. Possible exceptions
      * are stored inside that object and they can also be accessed by using whenComplete method.
-     * @return a never null CompletableFuture object which holds: an active connection ready to be used
+     * @return a never null CompletableFuture object which holds: an active connection ready to be used (if it's available)
      * @see CompletableFuture#whenComplete(BiConsumer)
      * @see CompletableFuture
      */
