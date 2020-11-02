@@ -70,26 +70,26 @@ public class DataTemplate<T extends ASQLContext<?>> {
     public <S> CompletableFuture<S> execute(@NotNull StatementCallback<S> callback) {
         Preconditions.checkNotNull(callback, "StatementCallback cannot be null.");
         CompletableFuture<S> completableFuture = new CompletableFuture<>();
-        getConnection().whenComplete((connection, exception) ->{
-            if (exception != null) {
-                completableFuture.completeExceptionally(exception);
+        context.getScheduler().async(() -> {
+            Connection connection = getConnection();
+            if (connection == null) {
+                completableFuture.completeExceptionally(new SQLException("Could not retrieve connection."));
                 logger.severe("Could not retrieve a connection.");
                 return;
             }
-            context.getScheduler().async(() -> {
-                Statement statement = null;
-                try {
-                    statement = connection.createStatement();
-                    S result = callback.doInStatement(statement);
-                    completableFuture.complete(result);
-                } catch (SQLException e) {
-                    completableFuture.completeExceptionally(e);
-                } finally {
-                    closeStatement(statement);
-                    closeConnection(connection);
-                }
-            });
+            Statement statement = null;
+            try {
+                statement = connection.createStatement();
+                S result = callback.doInStatement(statement);
+                completableFuture.complete(result);
+            } catch (SQLException e) {
+                completableFuture.completeExceptionally(e);
+            } finally {
+                closeStatement(statement);
+                closeConnection(connection);
+            }
         });
+
         return completableFuture;
     }
 
@@ -184,24 +184,23 @@ public class DataTemplate<T extends ASQLContext<?>> {
      */
     public <S> CompletableFuture<S> execute(@NotNull PreparedStatementCreator creator, @NotNull PreparedStatementCallback<S> callback) {
         CompletableFuture<S> completableFuture = new CompletableFuture<>();
-        getConnection().whenComplete((connection, exception) -> {
-            if (exception != null) {
-                completableFuture.completeExceptionally(exception);
+        context.getScheduler().async(() -> {
+            Connection connection = getConnection();
+            if (connection == null) {
+                completableFuture.completeExceptionally(new SQLException("Could not retrieve connection."));
                 logger.severe("Could not retrieve a connection.");
                 return;
             }
-            context.getScheduler().async(() -> {
-                PreparedStatement ps = null;
-                try {
-                    ps = creator.createPreparedStatement(connection);
-                    completableFuture.complete(callback.doInPreparedStatement(ps));
-                } catch (SQLException e) {
-                    completableFuture.completeExceptionally(e);
-                } finally {
-                    closeStatement(ps);
-                    closeConnection(connection);
-                }
-            });
+            PreparedStatement ps = null;
+            try {
+                ps = creator.createPreparedStatement(connection);
+                completableFuture.complete(callback.doInPreparedStatement(ps));
+            } catch (SQLException e) {
+                completableFuture.completeExceptionally(e);
+            } finally {
+                closeStatement(ps);
+                closeConnection(connection);
+            }
         });
         return completableFuture;
     }
@@ -501,10 +500,34 @@ public class DataTemplate<T extends ASQLContext<?>> {
      * Gets a connection using {@link DataSourceHandler}'s implementation.
      * This method's failures are fatal and definitely blocks {@link DataTemplate}'s access operations.
      * If that occurs then an error will be logged.
+     * @return an active connection ready to be used
+     */
+    @Nullable
+    protected Connection getConnection() {
+        DataSourceHandler handler = context.getDataSourceHandler();
+        Connection connection = null;
+        try {
+            if (handler.getStrategy() == Strategy.SIMPLE_CONNECTION)
+                handler.open(); // This handler doesn't manage a connection pool so we must open a connection first
+            else
+                connection = context.getDataSourceHandler().getConnection(); // Retrieving connection from the opened connection pool
+        } catch (SQLException e) {
+            return null;
+        }
+        return connection;
+    }
+
+    /**
+     * Gets a connection using {@link DataSourceHandler}'s implementation.
+     * The connection will be available by accessing the returned CompletableFuture object,
+     * with {@link CompletableFuture#whenComplete(BiConsumer)} method. Possible exceptions
+     * are stored inside that object and they can also be accessed by using whenComplete method.
      * @return a never null CompletableFuture object which holds: an active connection ready to be used
+     * @see CompletableFuture#whenComplete(BiConsumer)
+     * @see CompletableFuture
      */
     @NotNull
-    protected CompletableFuture<Connection> getConnection() {
+    protected CompletableFuture<Connection> getFutureConnection() {
         CompletableFuture<Connection> futureConnection = new CompletableFuture<>();
         context.getScheduler().async(() -> {
             DataSourceHandler handler = context.getDataSourceHandler();
