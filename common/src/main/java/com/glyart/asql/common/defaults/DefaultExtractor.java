@@ -30,7 +30,7 @@ public class DefaultExtractor<T> implements ResultSetExtractor<List<T>> {
     @Nullable
     @Override
     public List<T> extractData(@NotNull ResultSet rs) throws SQLException {
-        List<T> list = limit == 0 ? new ArrayList<>() : new ArrayList<>(limit);
+        List<T> list = limit == 0 ? new ArrayList<>() : new ArrayList<>(Math.abs(limit));
         int rowNum = 0;
         while (rs.next())
             list.add(mapper.map(rs, rowNum++));
