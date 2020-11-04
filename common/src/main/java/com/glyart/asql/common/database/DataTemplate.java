@@ -270,7 +270,7 @@ public class DataTemplate<T extends ASQLContext<?>> {
      * If getGeneratedKeys is true, this method will return the key of the new generated row
      */
     public CompletableFuture<Integer> update(@NotNull String sql, @Nullable PreparedStatementSetter setter, boolean getGeneratedKey) {
-        return update(new DefaultCreator(sql), setter, getGeneratedKey);
+        return update(new DefaultCreator(sql, getGeneratedKey), setter, getGeneratedKey);
     }
 
     /**
