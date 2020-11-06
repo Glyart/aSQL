@@ -158,8 +158,8 @@ public class User {
     private int score;
 
     public User(int id, String name) {
-      this.id = id;
-      this.name = name;	
+        this.id = id;
+        this.name = name;	
     }
 
     // getters, setter, constructor(s)
