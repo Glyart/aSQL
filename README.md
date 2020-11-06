@@ -1,6 +1,7 @@
 # asyncSQL
 
-An efficient library for dealing with databases asynchronously. Read [Javadocs](https://asql.glyart.com/) here.
+An efficient library for dealing with databases asynchronously. Read [Javadoc](https://asql.glyart.com/) here.
+A little request: while reading, use the Javadoc to understand in deep how these elements work.
 
 ## How to add this library in your project
 
@@ -68,6 +69,18 @@ try {
 } catch (SQLException e) {
     // handle the exception the way you prefer
 }
+
+// Remember to close the connection pool when it's no more needed.
+// Usually, this is done in onDisable method
+
+@Override
+public void onDisable() {
+    try {
+        context.getDataSourceHandler.close();
+    catch (SQLException e) {
+        // handle the exception the way you prefer
+    }
+}
 ```
 
 ## Custom DataSourceHandler
@@ -111,12 +124,13 @@ SpigotASQLContext context = SpigotASQLContext.builder()
   .setDatabaseHandler(yourHandler)
   .build();
 
-// Do this if your strategy is CONNECTION_POOL
+// Do the following if your strategy is CONNECTION_POOL
 try {
     context.getDataSourceHandler().open();
 } catch (SQLException e) {
     // handle the exception the way you prefer
 }
+// Again, remember to close the connection pool when it's no more needed.
 ```
 Read more about [strategies](http://asql.glyart.com/aSQL-common/com/glyart/asql/common/database/Strategy.html).
 
@@ -170,9 +184,9 @@ public class User {
 
 If you need to query the database you can use two methods: queryForList and queryForObject.
 
-The first one gets a list of results, the second one gets one result. Use it when you are sure that the query will supply exactly one result. Read more about this in the [Javadocs](http://asql.glyart.com/aSQL-common/com/glyart/asql/common/database/DataTemplate.html).
+The first one gets a list of results, the second one gets one result. Use it when you are sure that the query will supply exactly one result. Read more about this in the [Javadoc](http://asql.glyart.com/aSQL-common/com/glyart/asql/common/database/DataTemplate.html).
 
-Query methods need a RowMapper implementation. A RowMapper implementation maps a result for each ResultSet row ( we don't worry about exceptions or empty ResultSets). Read more about this in the [Javadocs](http://asql.glyart.com/aSQL-common/com/glyart/asql/common/functions/RowMapper.html).
+Query methods need a RowMapper implementation. A RowMapper implementation maps a result for each ResultSet row ( we don't worry about exceptions or empty ResultSets). Read more about this in the [Javadoc](http://asql.glyart.com/aSQL-common/com/glyart/asql/common/functions/RowMapper.html).
 
 Example on getting a list by using a static SQL statement:
 
