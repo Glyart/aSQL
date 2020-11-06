@@ -120,7 +120,7 @@ try {
   // handle the exception the way you prefer
 }
 ```
-// Read more about [strategies](http://asql.glyart.com/aSQL-common/com/glyart/asql/common/database/Strategy.html).
+Read more about [strategies](http://asql.glyart.com/aSQL-common/com/glyart/asql/common/database/Strategy.html).
 
 ## Data access operations
 
