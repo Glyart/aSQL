@@ -245,7 +245,7 @@ Example on getting a single result by using a SQL statement with multiple parame
 ```java
 String sql = "SELECT * FROM users WHERE id = ? OR score > ?"
 // If parameter types are different we must use new Object[] {...}
-// e.g. new Object[] {1, "HelloThirdParam", 4.4, otherRandomVariable}
+// e.g. new Object[] {1, "HelloSecondParam", 4.4, otherRandomVariable}
 CompletableFuture<User> future = dataTemplate.queryForObject(sql, new Integer[] {1, 10}, (resultSet, rowNumber) -> {
     return new User(resultSet.getInt(1), resultSet.getString(2));
 });
