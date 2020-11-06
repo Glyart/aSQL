@@ -102,7 +102,7 @@ public class MyDataSourceHandler implements DataSourceHandler {
     @NotNull
     @Override
     public Strategy getStrategy() {
-        return [YOUR_STRATEGY](http://asql.glyart.com/aSQL-common/com/glyart/asql/common/database/Strategy.html);
+        return YOUR_STRATEGY;
     }
 }
 
@@ -114,13 +114,13 @@ SpigotASQLContext context = SpigotASQLContext.builder()
   .build();
 
 // Do this if your strategy is CONNECTION_POOL
-// Read the Javadoc for further information
 try {
   context.getDataSourceHandler().open();
 } catch (SQLException e) {
   // handle the exception the way you prefer
 }
 ```
+// Read more about [strategies](http://asql.glyart.com/aSQL-common/com/glyart/asql/common/database/Strategy.html).
 
 ## Data access operations
 
