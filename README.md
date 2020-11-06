@@ -372,7 +372,7 @@ Example with ParametrizedPreparedStatementSetter:
 
 String sql = "INSERT INTO users VALUES(?, ?, ?)";
 
-CompletableFuture<Void> future = dataTemplate.batchUpdate(sql, users, (preparedStatement, user) -> {
+CompletableFuture<Void> future = dataTemplate.batchUpdate(sql, users, (ps, user) -> {
     ps.setInt(1, user.getId());
     ps.setString(2, user.getName());
     ps.setInt(3, user.getScore());
