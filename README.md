@@ -66,9 +66,9 @@ SpigotASQLContext context = SpigotASQLContext.builder()
   .build();
 
 try {
-  context.getDataSourceHandler().open();
+    context.getDataSourceHandler().open();
 } catch (SQLException e) {
-  // handle the exception the way you prefer
+    // handle the exception the way you prefer
 }
 ```
 
@@ -81,7 +81,7 @@ If you want to create your own DataSourceHandler you need to implement the DataS
 ```java
 public class MyDataSourceHandler implements DataSourceHandler {
     
-		// Constructors and other things
+    // Constructors and other things
 
     @NotNull
     @Override
@@ -115,9 +115,9 @@ SpigotASQLContext context = SpigotASQLContext.builder()
 
 // Do this if your strategy is CONNECTION_POOL
 try {
-  context.getDataSourceHandler().open();
+    context.getDataSourceHandler().open();
 } catch (SQLException e) {
-  // handle the exception the way you prefer
+    // handle the exception the way you prefer
 }
 ```
 Read more about [strategies](http://asql.glyart.com/aSQL-common/com/glyart/asql/common/database/Strategy.html).
@@ -155,16 +155,16 @@ We need to represents this table by using a Java class, but this is simple eithe
 ```java
 public class User {
 
-  private int id;
-  private String name;
-  private int score;
+    private int id;
+    private String name;
+    private int score;
 
-  public User(int id, String name) {
-    this.id = id;
-    this.name = name;	
-  }
+    public User(int id, String name) {
+      this.id = id;
+      this.name = name;	
+    }
 
-  // getters, setter, constructor(s)
+    // getters, setter, constructor(s)
 }
 ```
 
@@ -180,28 +180,27 @@ Example on getting a list by using a static SQL statement:
 
 ```java
 CompletableFuture<List<User>> future = dataTemplate.queryForList("SELECT * FROM users", (resultSet, rowNumber) -> {
-	/* We use this RowMapper implementation to work with ResultSet's rows.
-	*  For example, if we want to get users with 0 score only we can do the following:
-	*/
-	if (resultSet.getInt("score") == 0) {
-		User user = new User();
-		user.setId(resultSet.getInt("id"));
-		user.setName(resultSet.getString("name"));
-		return user;
-	}
+    /* We use this RowMapper implementation to work with ResultSet's rows.
+    *  For example, if we want to get users with 0 score only we can do the following:
+    */
+    if (resultSet.getInt("score") == 0) {
+        User user = new User();
+        user.setId(resultSet.getInt("id"));
+        user.setName(resultSet.getString("name"));
+        return user;
+    }
 });
 
 // Just wait for the query to complete. When it's time, whenComplete method is executed
 future.whenComplete((users, exception) -> {
-	if (exception != null) {
-		// you can handle the error
-		return;
-	}
-	// "users" is the list of results, extracted from ResultSet with RowMapper (users with 0 score)
-	// note that the list can be empty, but never null
-	for (User user : users) 
-	  player.sendMessage(user.getId() + " - " + user.getName());
-	
+    if (exception != null) {
+        // you can handle the error
+        return;
+    }
+    // "users" is the list of results, extracted from ResultSet with RowMapper (users with 0 score)
+    // note that the list can be empty, but never null
+    for (User user : users) 
+        player.sendMessage(user.getId() + " - " + user.getName());
 });
 ```
 
@@ -216,14 +215,13 @@ CompletableFuture<User> future = dataTemplate.queryForObject(sql, new Integer[] 
 
 // Same logic as before
 future.whenComplete((user, exception) -> {
-	if (exception != null) {
-		// you can handle the error
-		return;
-	}
-	// Warning: a single result can be null
-	if (user != null)
-	  player.sendMessage("Score of " + user.getName() + ": " + user.getScore());
-
+    if (exception != null) {
+        // you can handle the error
+        return;
+    }
+    // Warning: a single result can be null
+    if (user != null)
+        player.sendMessage("Score of " + user.getName() + ": " + user.getScore());
 });
 ```
 
@@ -234,19 +232,19 @@ String sql = "SELECT * FROM users WHERE id = ? OR score > ?"
 // If parameter types are different we must use new Object[] {...}
 // e.g. new Object[] {1, "HelloThirdParam", 4.4, otherRandomVariable}
 CompletableFuture<User> future = dataTemplate.queryForObject(sql, new Integer[] {1, 10}, (resultSet, rowNumber) -> {
-	return new User(resultSet.getInt(1), resultSet.getString(2));
+    return new User(resultSet.getInt(1), resultSet.getString(2));
 });
 
 // Same logic as before
 future.whenComplete((user, exception) -> {
-	if (exception != null) {
-		// you can handle the error
-		return;
-	}
-	// Warning: a single result can be null
-	if (user != null) {
-	  // things
-	}
+    if (exception != null) {
+        // you can handle the error
+        return;
+    }
+    // Warning: a single result can be null
+    if (user != null) {
+        // things
+    }
 });
 ```
 
@@ -282,10 +280,10 @@ CompletableFuture<Integer> future = dataTemplate.update(sql, new Object[] {3, "E
 
 // Same logic as before
 future.whenComplete((integer, exception) -> {
-	if (exception != null) {
-	  return; // you can handle the error
-	}
-	System.out.println(integer); // Expected 1
+    if (exception != null) {
+      return; // you can handle the error
+    }
+    System.out.println(integer); // Expected 1
 }
 ```
 
@@ -297,11 +295,11 @@ CompletableFuture<Integer> future = dataTemplate.update(sql, true);
 
 // Same logic as before
 future.whenComplete((integer, exception) -> {
-	if (exception != null) {
-	  // you can handle the error
-	  return;
-	}
-	System.out.println(integer); // Expected the primary key of this new row
+    if (exception != null) {
+      // you can handle the error
+      return;
+    }
+    System.out.println(integer); // Expected the primary key of this new row
 }
 ```
 
@@ -324,7 +322,7 @@ Example with BatchPreparedStatementSetter:
 // Let's prepare 100 insert statement
 List<User> users = new ArrayList<>();
 for (int i = 0; i < 100; i++) 
-  users.add(new User(i, "Test" + 1, 0));
+    users.add(new User(i, "Test" + 1, 0));
 
 String sql = "INSERT INTO users VALUES(?, ?, ?)";
 
@@ -345,9 +343,9 @@ CompletableFuture<Void> future = dataTemplate.batchUpdate(sql, new BatchPrepared
 
 //Same logic as before
 future.whenComplete((unused, exception) -> {
-	if (exception != null) {
-	  // you can handle the error
-	}
+    if (exception != null) {
+    // you can handle the error
+    }
 });
 
 ```
@@ -360,16 +358,16 @@ Example with ParametrizedPreparedStatementSetter:
 String sql = "INSERT INTO users VALUES(?, ?, ?)";
 
 CompletableFuture<Void> future = dataTemplate.batchUpdate(sql, users, (preparedStatement, user) -> {
-	ps.setInt(1, user.getId());
-	ps.setString(2, user.getName());
-	ps.setInt(3, user.getScore());
+    ps.setInt(1, user.getId());
+    ps.setString(2, user.getName());
+    ps.setInt(3, user.getScore());
 });
 
 //Same logic as before
 future.whenComplete((unused, exception) -> {
-	if (exception != null) {
-	  // you can handle the error
-	}
+    if (exception != null) {
+    // you can handle the error
+    }
 });
 
 ```
