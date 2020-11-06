@@ -98,17 +98,18 @@ public class MyDataSourceHandler implements DataSourceHandler {
     @NotNull
     @Override
     public Connection getConnection() throws SQLException {
+    	// your implementation
         return connection;
     }
 
     @Override
     public void open() throws SQLException {
-
+	// your implementation
     }
 
     @Override
     public void close() throws SQLException {
-
+	// your implementation
     }
 
     @NotNull
@@ -202,6 +203,7 @@ CompletableFuture<List<User>> future = dataTemplate.queryForList("SELECT * FROM 
         user.setName(resultSet.getString("name"));
         return user;
     }
+    return null;
 });
 
 // Just wait for the query to complete. When it's time, whenComplete method is executed
@@ -294,7 +296,7 @@ CompletableFuture<Integer> future = dataTemplate.update(sql, new Object[] {3, "E
 // Same logic as before
 future.whenComplete((integer, exception) -> {
     if (exception != null) {
-      return; // you can handle the error
+        return; // you can handle the error
     }
     System.out.println(integer); // Expected 1
 }
@@ -309,8 +311,8 @@ CompletableFuture<Integer> future = dataTemplate.update(sql, true);
 // Same logic as before
 future.whenComplete((integer, exception) -> {
     if (exception != null) {
-      // you can handle the error
-      return;
+        // you can handle the error
+        return;
     }
     System.out.println(integer); // Expected the primary key of this new row
 }
@@ -357,7 +359,7 @@ CompletableFuture<Void> future = dataTemplate.batchUpdate(sql, new BatchPrepared
 //Same logic as before
 future.whenComplete((unused, exception) -> {
     if (exception != null) {
-    // you can handle the error
+        // you can handle the error
     }
 });
 
@@ -379,7 +381,7 @@ CompletableFuture<Void> future = dataTemplate.batchUpdate(sql, users, (preparedS
 //Same logic as before
 future.whenComplete((unused, exception) -> {
     if (exception != null) {
-    // you can handle the error
+        // you can handle the error
     }
 });
 
