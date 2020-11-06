@@ -1,7 +1,5 @@
 # asyncSQL
 
-# aSQL
-
 An efficient library for dealing with databases asynchronously. Read [Javadocs](https://asql.glyart.com/) here.
 
 ## How to add this library in your project
