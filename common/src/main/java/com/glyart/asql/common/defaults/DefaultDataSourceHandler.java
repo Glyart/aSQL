@@ -28,10 +28,9 @@ public class DefaultDataSourceHandler implements DataSourceHandler {
     private void initConfig(String poolName) {
         if (credentials.getProperties() == null) {
             hikariConfig = new HikariConfig();
-            hikariConfig.setJdbcUrl(String.format("jdbc:mysql://%s:%s", credentials.getHostname(), credentials.getPort()));
+            hikariConfig.setJdbcUrl(String.format("jdbc:mysql://%s:%s/%s", credentials.getHostname(), credentials.getPort(), credentials.getDatabase()));
             hikariConfig.setUsername(credentials.getUsername());
             hikariConfig.setPassword(credentials.getPassword());
-            hikariConfig.setSchema(credentials.getDatabase());
             if (poolName != null)
                 hikariConfig.setPoolName(poolName);
 
