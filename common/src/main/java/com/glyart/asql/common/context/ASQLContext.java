@@ -22,7 +22,13 @@ public interface ASQLContext<T> {
      * Gets the {@link DataTemplate} instance linked to this ASQLContext.
      * @return the data template related to this context
      */
-    DataTemplate<? extends ASQLContext<T>> getDataTemplate();
+    DataTemplate<? extends ASQLContext<T>> getAsyncDataTemplate();
+
+    /**
+     * Gets the {@link DataTemplate} instance linked to this ASQLContext.
+     * @return the data template related to this context
+     */
+    DataTemplate<? extends ASQLContext<T>> getSyncDataTemplate();
 
     /**
      * Gets the data source interaction strategy linked to this ASQLContext.

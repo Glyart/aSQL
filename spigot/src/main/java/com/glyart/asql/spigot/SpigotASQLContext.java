@@ -5,7 +5,9 @@ import com.glyart.asql.common.context.ContextScheduler;
 import com.glyart.asql.common.database.DataSourceCredentials;
 import com.glyart.asql.common.database.DataSourceHandler;
 import com.glyart.asql.common.database.DataTemplate;
+import com.glyart.asql.common.defaults.AsyncDataAccessExecutor;
 import com.glyart.asql.common.defaults.DefaultDataSourceHandler;
+import com.glyart.asql.common.defaults.SyncDataAccessExecutor;
 import com.google.common.base.Preconditions;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +27,8 @@ public class SpigotASQLContext implements ASQLContext<JavaPlugin> {
     private final JavaPlugin javaPlugin;
     private final DataSourceCredentials credentials;
     private final DataSourceHandler dataSourceHandler;
-    private final DataTemplate<SpigotASQLContext> dataTemplate;
+    private final DataTemplate<SpigotASQLContext> asyncDataTemplate;
+    private final DataTemplate<SpigotASQLContext> syncDataTemplate;
 
     protected SpigotASQLContext(JavaPlugin javaPlugin, DataSourceCredentials credentials, DataSourceHandler dataSourceHandler) {
         this.javaPlugin = javaPlugin;
@@ -34,7 +37,8 @@ public class SpigotASQLContext implements ASQLContext<JavaPlugin> {
         if (asqlSpigotScheduler == null)
             asqlSpigotScheduler = new ASQLSpigotScheduler<>(javaPlugin);
 
-        this.dataTemplate = new DataTemplate<>(this);
+        this.asyncDataTemplate = new DataTemplate<>(new AsyncDataAccessExecutor(this));
+        this.syncDataTemplate = new DataTemplate<>(new SyncDataAccessExecutor(this));
     }
 
     @Override
@@ -43,8 +47,13 @@ public class SpigotASQLContext implements ASQLContext<JavaPlugin> {
     }
 
     @Override
-    public DataTemplate<SpigotASQLContext> getDataTemplate() {
-        return dataTemplate;
+    public DataTemplate<? extends ASQLContext<JavaPlugin>> getAsyncDataTemplate() {
+        return asyncDataTemplate;
+    }
+
+    @Override
+    public DataTemplate<? extends ASQLContext<JavaPlugin>> getSyncDataTemplate() {
+        return syncDataTemplate;
     }
 
     @Override

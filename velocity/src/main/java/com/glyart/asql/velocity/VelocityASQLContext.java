@@ -6,6 +6,7 @@ import com.glyart.asql.common.database.DataSourceCredentials;
 import com.glyart.asql.common.database.DataSourceHandler;
 import com.glyart.asql.common.database.DataTemplate;
 import com.glyart.asql.common.defaults.DefaultDataSourceHandler;
+import com.glyart.asql.common.defaults.SyncDataAccessExecutor;
 import com.google.common.base.Preconditions;
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +39,7 @@ public class VelocityASQLContext implements ASQLContext<Object> {
         if (asqlVelocityScheduler == null)
             asqlVelocityScheduler = new ASQLVelocityScheduler<>(server, plugin);
 
-        this.dataTemplate = new DataTemplate<>(this);
+        this.dataTemplate = new DataTemplate<>(new SyncDataAccessExecutor(this));
     }
 
     @Override
@@ -47,8 +48,13 @@ public class VelocityASQLContext implements ASQLContext<Object> {
     }
 
     @Override
-    public DataTemplate<VelocityASQLContext> getDataTemplate() {
+    public DataTemplate<? extends ASQLContext<Object>> getAsyncDataTemplate() {
         return dataTemplate;
+    }
+
+    @Override
+    public DataTemplate<? extends ASQLContext<Object>> getSyncDataTemplate() {
+        throw new UnsupportedOperationException("This context doesn't support sync data template");
     }
 
     @Override

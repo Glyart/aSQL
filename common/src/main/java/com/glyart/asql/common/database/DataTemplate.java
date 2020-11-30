@@ -10,12 +10,12 @@ import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.*;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.logging.Logger;
 
 /**
  * Represents the final interaction to a data source.
@@ -50,47 +50,10 @@ import java.util.logging.Logger;
 @SuppressWarnings("unused")
 public class DataTemplate<T extends ASQLContext<?>> {
 
-    private final T context;
-    private final Logger logger;
+    private final DataAccessExecutor<ASQLContext<?>> dataAccessExecutor;
 
-    public DataTemplate(T context) {
-        Preconditions.checkNotNull(context, "Context cannot be null.");
-        this.context = context;
-        this.logger = context.getLogger();
-    }
-
-    /**
-     * Executes a JDBC data access operation, implemented as {@link StatementCallback} callback, using an
-     * active connection.
-     * The callback CAN return a result object (if it exists), for example a single object or a collection of objects.
-     * @param callback a callback that holds the operation logic
-     * @param <S> the result type
-     * @return a never null CompletableFuture object which holds: an object returned by the callback, or null if it's not available
-     */
-    public <S> CompletableFuture<S> execute(@NotNull StatementCallback<S> callback) {
-        Preconditions.checkNotNull(callback, "StatementCallback cannot be null.");
-        CompletableFuture<S> completableFuture = new CompletableFuture<>();
-        context.getScheduler().async(() -> {
-            Connection connection = getConnection();
-            if (connection == null) {
-                completableFuture.completeExceptionally(new SQLException("Could not retrieve connection."));
-                logger.severe("Could not retrieve a connection.");
-                return;
-            }
-            Statement statement = null;
-            try {
-                statement = connection.createStatement();
-                S result = callback.doInStatement(statement);
-                completableFuture.complete(result);
-            } catch (SQLException e) {
-                completableFuture.completeExceptionally(e);
-            } finally {
-                closeStatement(statement);
-                closeConnection(connection);
-            }
-        });
-
-        return completableFuture;
+    public DataTemplate(DataAccessExecutor<ASQLContext<?>> dataAccessExecutor) {
+        this.dataAccessExecutor = dataAccessExecutor;
     }
 
     /**
@@ -103,7 +66,7 @@ public class DataTemplate<T extends ASQLContext<?>> {
     public CompletableFuture<Integer> update(@NotNull String sql, boolean getGeneratedKeys) {
         Preconditions.checkNotNull(sql, "Sql statement cannot be null.");
 
-        return execute(statement -> {
+        return dataAccessExecutor.execute(statement -> {
             int rows;
             ResultSet set = null;
             try {
@@ -114,7 +77,7 @@ public class DataTemplate<T extends ASQLContext<?>> {
                 } else
                     rows = statement.executeUpdate(sql, Statement.NO_GENERATED_KEYS);
             } finally {
-                closeResultSet(set);
+                dataAccessExecutor.closeResultSet(set);
             }
             return rows;
         });
@@ -128,14 +91,14 @@ public class DataTemplate<T extends ASQLContext<?>> {
      * @return a never null CompletableFuture object which holds: a result object (if it exists), according to the ResultSetExtractor implementation
      */
     public <S> CompletableFuture<S> query(@NotNull String sql, ResultSetExtractor<S> extractor) {
-        return execute(statement -> {
+        return dataAccessExecutor.execute(statement -> {
             ResultSet resultSet = null;
             S result;
             try {
                 resultSet = statement.executeQuery(sql);
                 result = extractor.extractData(resultSet);
             } finally {
-                closeResultSet(resultSet);
+                dataAccessExecutor.closeResultSet(resultSet);
             }
             return result;
         });
@@ -166,56 +129,9 @@ public class DataTemplate<T extends ASQLContext<?>> {
      */
     public <S> CompletableFuture<S> queryForObject(@NotNull String sql, RowMapper<S> rowMapper) {
         CompletableFuture<S> futureSinglet = new CompletableFuture<>();
-        context.getScheduler().async(() -> {
-            CompletableFuture<List<S>> listCompletableFuture = query(sql, new DefaultExtractor<>(rowMapper, 1));
-            listCompletableFuture.whenComplete((s, throwable) -> futureSinglet.complete(s.isEmpty() ? null : s.get(0)));
-        });
+        CompletableFuture<List<S>> listCompletableFuture = query(sql, new DefaultExtractor<>(rowMapper, 1));
+        listCompletableFuture.whenComplete((s, throwable) -> futureSinglet.complete(s.isEmpty() ? null : s.get(0)));
         return futureSinglet;
-    }
-
-    /**
-     * Executes a JDBC data access operation, implemented as {@link PreparedStatementCallback} callback
-     * working on a PreparedStatement.
-     * The callback CAN return a result object (if it exists), for example a singlet or a collection of objects.
-     * @param creator a callback that creates a PreparedStatement object given a connection
-     * @param callback a callback that holds the operation logic
-     * @param <S> the result type
-     * @return a never null CompletableFuture object which holds: an object returned by the callback, or null if it's not available
-     */
-    public <S> CompletableFuture<S> execute(@NotNull PreparedStatementCreator creator, @NotNull PreparedStatementCallback<S> callback) {
-        CompletableFuture<S> completableFuture = new CompletableFuture<>();
-        context.getScheduler().async(() -> {
-            Connection connection = getConnection();
-            if (connection == null) {
-                completableFuture.completeExceptionally(new SQLException("Could not retrieve connection."));
-                logger.severe("Could not retrieve a connection.");
-                return;
-            }
-            PreparedStatement ps = null;
-            try {
-                ps = creator.createPreparedStatement(connection);
-                completableFuture.complete(callback.doInPreparedStatement(ps));
-            } catch (SQLException e) {
-                completableFuture.completeExceptionally(e);
-            } finally {
-                closeStatement(ps);
-                closeConnection(connection);
-            }
-        });
-        return completableFuture;
-    }
-
-    /**
-     * Executes a JDBC data access operation, implemented as {@link PreparedStatementCallback} callback
-     * working on a PreparedStatement.
-     * The callback CAN return a result object (if it exists), for example a singlet or a collection of objects.
-     * @param sql the SQL statement to execute
-     * @param callback a callback that holds the operation logic
-     * @param <S> the result type
-     * @return a never null CompletableFuture object which holds: an object returned by the callback, or null if it's not available
-     */
-    public <S> CompletableFuture<S> execute(@NotNull String sql, @NotNull PreparedStatementCallback<S> callback) {
-        return execute(new DefaultCreator(sql), callback);
     }
 
     /**
@@ -228,7 +144,7 @@ public class DataTemplate<T extends ASQLContext<?>> {
      * If getGeneratedKeys is true, this method will return the key of the new generated row
      */
     public CompletableFuture<Integer> update(@NotNull PreparedStatementCreator creator, @Nullable PreparedStatementSetter setter, boolean getGeneratedKey) {
-        return execute(creator, ps -> {
+        return dataAccessExecutor.execute(creator, ps -> {
             ResultSet set = null;
             int rows;
             try {
@@ -242,7 +158,7 @@ public class DataTemplate<T extends ASQLContext<?>> {
                 } else
                     rows = ps.executeUpdate();
             } finally {
-                closeResultSet(set);
+                dataAccessExecutor.closeResultSet(set);
             }
             return rows;
         });
@@ -303,7 +219,7 @@ public class DataTemplate<T extends ASQLContext<?>> {
         Preconditions.checkArgument(!sql.isEmpty(), "Sql cannot be empty.");
         Preconditions.checkNotNull(batchSetter, "BatchPreparedStatementSetter cannot be null.");
 
-        return execute(sql, ps -> {
+        return dataAccessExecutor.execute(sql, ps -> {
             if (!ps.getConnection().getMetaData().supportsBatchUpdates())
                 throw new IllegalStateException("This driver doesn't support batch updates. This method will remain unusable until you choose a driver that supports batch updates.");
 
@@ -353,7 +269,7 @@ public class DataTemplate<T extends ASQLContext<?>> {
         if (batchArgs == null || batchArgs.isEmpty())
             return CompletableFuture.completedFuture(null);
 
-        return execute(sql, ps -> {
+        return dataAccessExecutor.execute(sql, ps -> {
             if (!ps.getConnection().getMetaData().supportsBatchUpdates())
                 throw new IllegalStateException("This driver doesn't support batch updates. This method will remain unusable until you choose a driver that supports batch updates.");
 
@@ -382,7 +298,7 @@ public class DataTemplate<T extends ASQLContext<?>> {
     public <S> CompletableFuture<S> query(@NotNull PreparedStatementCreator creator, @Nullable PreparedStatementSetter setter, @NotNull ResultSetExtractor<S> extractor) {
         Preconditions.checkNotNull(extractor, "ResultSetExtractor cannot be null.");
 
-        return execute(creator, ps -> {
+        return dataAccessExecutor.execute(creator, ps -> {
             S result;
             ResultSet resultSet = null;
             try {
@@ -392,7 +308,7 @@ public class DataTemplate<T extends ASQLContext<?>> {
                 resultSet = ps.executeQuery();
                 result = extractor.extractData(resultSet);
             } finally {
-                closeResultSet(resultSet);
+                dataAccessExecutor.closeResultSet(resultSet);
             }
             return result;
         });
@@ -489,111 +405,9 @@ public class DataTemplate<T extends ASQLContext<?>> {
      */
     public <S> CompletableFuture<S> queryForObject(@NotNull String sql, Object[] args, @NotNull RowMapper<S> rowMapper) {
         CompletableFuture<S> futureSinglet = new CompletableFuture<>();
-        context.getScheduler().async(() -> {
-            CompletableFuture<List<S>> listCompletableFuture = query(sql, args, new DefaultExtractor<>(rowMapper, 1));
-            listCompletableFuture.whenComplete((s, throwable) -> futureSinglet.complete(s.isEmpty() ? null : s.get(0)));
-        });
+        CompletableFuture<List<S>> listCompletableFuture = query(sql, args, new DefaultExtractor<>(rowMapper, 1));
+        listCompletableFuture.whenComplete((s, throwable) -> futureSinglet.complete(s.isEmpty() ? null : s.get(0)));
         return futureSinglet;
     }
-
-    /**
-     * Gets a connection using {@link DataSourceHandler}'s implementation.
-     * This method's failures are fatal and definitely blocks {@link DataTemplate}'s access operations.
-     * If that occurs then an error will be logged.
-     * @return an active connection ready to be used (if it's available)
-     */
-    @Nullable
-    protected Connection getConnection() {
-        DataSourceHandler handler = context.getDataSourceHandler();
-        Connection connection = null;
-        try {
-            if (handler.getStrategy() == Strategy.SIMPLE_CONNECTION)
-                handler.open(); // This handler doesn't manage a connection pool so we must open a connection first
-            else
-                connection = context.getDataSourceHandler().getConnection(); // Retrieving connection from the opened connection pool
-        } catch (SQLException e) {
-            return null;
-        }
-        return connection;
-    }
-
-    /**
-     * Gets a connection using {@link DataSourceHandler}'s implementation.
-     * The connection will be available by accessing the returned CompletableFuture object,
-     * with {@link CompletableFuture#whenComplete(BiConsumer)} method. Possible exceptions
-     * are stored inside that object and they can also be accessed by using whenComplete method.
-     * @return a never null CompletableFuture object which holds: an active connection ready to be used (if it's available)
-     * @see CompletableFuture#whenComplete(BiConsumer)
-     * @see CompletableFuture
-     */
-    @NotNull
-    protected CompletableFuture<Connection> getFutureConnection() {
-        CompletableFuture<Connection> futureConnection = new CompletableFuture<>();
-        context.getScheduler().async(() -> {
-            DataSourceHandler handler = context.getDataSourceHandler();
-            Connection connection = null;
-            try {
-                if (handler.getStrategy() == Strategy.SIMPLE_CONNECTION)
-                    handler.open(); // This handler doesn't manage a connection pool so we must open a connection first
-                else
-                    connection = context.getDataSourceHandler().getConnection(); // Retrieving connection from the opened connection pool
-            } catch (SQLException e) {
-                futureConnection.completeExceptionally(e);
-            }
-            futureConnection.complete(connection);
-        });
-        return futureConnection;
-    }
-
-    /**
-     * Closes a connection using {@link DataSourceHandler}'s implementation.
-     * A failure from this method is not fatal but it will be logged as warning.
-     * @param connection the connection to close
-     */
-    protected void closeConnection(@Nullable Connection connection) {
-        if (connection == null)
-            return;
-
-        DataSourceHandler handler = context.getDataSourceHandler();
-        try {
-            if (handler.getStrategy() == Strategy.SIMPLE_CONNECTION)
-                handler.close(); // A simple connection based handler must decide how to manage connection closure
-            else
-                connection.close(); // We mustn't close the connection pool but we can free the created connection
-        } catch (SQLException e) {
-            logger.warning(() -> e.getMessage() + " - Error code: " + e.getErrorCode());
-        }
-    }
-
-    /**
-     * Tries to close a statement (accepts PreparedStatement objects).
-     * A failure from this method is not fatal but it will be logged as warning.
-     * @param statement the statement to close
-     */
-    protected void closeStatement(@Nullable Statement statement) {
-        if (statement == null)
-            return;
-
-        try {
-            statement.close();
-        } catch (SQLException e) {
-            logger.warning(() -> e.getMessage() + " - Error code: " + e.getErrorCode());
-        }
-    }
-
-    /**
-     * Tries to close a ResultSet object.
-     * A failure from this method is not fatal but it will be logged as warning.
-     * @param set the ResultSet to close
-     */
-    protected void closeResultSet(@Nullable ResultSet set) {
-        if (set == null)
-            return;
-
-        try {
-            set.close();
-        } catch (SQLException e) {
-            logger.warning(() -> e.getMessage() + " - Error code: " + e.getErrorCode());
-        }
-    }
+    
 }
