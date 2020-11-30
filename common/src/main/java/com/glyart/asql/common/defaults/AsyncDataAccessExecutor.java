@@ -9,20 +9,27 @@ import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.concurrent.CompletableFuture;
 
 public class AsyncDataAccessExecutor extends DataAccessExecutor<ASQLContext<?>> {
 
-    public AsyncDataAccessExecutor(ASQLContext context) {
+    public AsyncDataAccessExecutor(ASQLContext<?> context) {
         super(context);
     }
 
+    /**
+     * Executes an asynchronous JDBC data access operation, implemented as {@link StatementCallback} callback, using an
+     * active connection.
+     * The callback CAN return a result object (if it exists), for example a single object or a collection of objects.
+     * @param callback a callback that holds the operation logic
+     * @param <S> the result type
+     * @return a never null CompletableFuture object which holds: an object returned by the callback, or null if it's not available
+     */
     @Override
     public <S> CompletableFuture<S> execute(@NotNull StatementCallback<S> callback) {
         Preconditions.checkNotNull(callback, "StatementCallback cannot be null.");
+
         CompletableFuture<S> completableFuture = new CompletableFuture<>();
         context.getScheduler().async(() -> {
             Connection connection = getConnection();
@@ -31,24 +38,26 @@ public class AsyncDataAccessExecutor extends DataAccessExecutor<ASQLContext<?>> 
                 logger.severe("Could not retrieve a connection.");
                 return;
             }
-            Statement statement = null;
-            try {
-                statement = connection.createStatement();
-                S result = callback.doInStatement(statement);
-                completableFuture.complete(result);
-            } catch (SQLException e) {
-                completableFuture.completeExceptionally(e);
-            } finally {
-                closeStatement(statement);
-                closeConnection(connection);
-            }
+            doStatementExecute(connection, callback, completableFuture);
         });
 
         return completableFuture;
     }
 
+    /**
+     * Executes an asynchronous JDBC data access operation, implemented as {@link PreparedStatementCallback} callback
+     * working on a PreparedStatement.
+     * The callback CAN return a result object (if it exists), for example a singlet or a collection of objects.
+     * @param creator a callback that creates a PreparedStatement object given a connection
+     * @param callback a callback that holds the operation logic
+     * @param <S> the result type
+     * @return a never null CompletableFuture object which holds: an object returned by the callback, or null if it's not available
+     */
     @Override
     public <S> CompletableFuture<S> execute(@NotNull PreparedStatementCreator creator, @NotNull PreparedStatementCallback<S> callback) {
+        Preconditions.checkNotNull(creator, "PreparedStatementCreator cannot be null.");
+        Preconditions.checkNotNull(callback, "PreparedStatementCallback cannot be null.");
+
         CompletableFuture<S> completableFuture = new CompletableFuture<>();
         context.getScheduler().async(() -> {
             Connection connection = getConnection();
@@ -57,16 +66,7 @@ public class AsyncDataAccessExecutor extends DataAccessExecutor<ASQLContext<?>> 
                 logger.severe("Could not retrieve a connection.");
                 return;
             }
-            PreparedStatement ps = null;
-            try {
-                ps = creator.createPreparedStatement(connection);
-                completableFuture.complete(callback.doInPreparedStatement(ps));
-            } catch (SQLException e) {
-                completableFuture.completeExceptionally(e);
-            } finally {
-                closeStatement(ps);
-                closeConnection(connection);
-            }
+            doPreparedStatementExecute(connection, creator, callback, completableFuture);
         });
         return completableFuture;
     }

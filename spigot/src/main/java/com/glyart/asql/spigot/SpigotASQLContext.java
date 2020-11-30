@@ -27,8 +27,8 @@ public class SpigotASQLContext implements ASQLContext<JavaPlugin> {
     private final JavaPlugin javaPlugin;
     private final DataSourceCredentials credentials;
     private final DataSourceHandler dataSourceHandler;
-    private final DataTemplate<SpigotASQLContext> asyncDataTemplate;
-    private final DataTemplate<SpigotASQLContext> syncDataTemplate;
+    private final DataTemplate<AsyncDataAccessExecutor> asyncDataTemplate;
+    private final DataTemplate<SyncDataAccessExecutor> syncDataTemplate;
 
     protected SpigotASQLContext(JavaPlugin javaPlugin, DataSourceCredentials credentials, DataSourceHandler dataSourceHandler) {
         this.javaPlugin = javaPlugin;
@@ -47,12 +47,12 @@ public class SpigotASQLContext implements ASQLContext<JavaPlugin> {
     }
 
     @Override
-    public DataTemplate<? extends ASQLContext<JavaPlugin>> getAsyncDataTemplate() {
+    public DataTemplate<AsyncDataAccessExecutor> getAsyncDataTemplate() {
         return asyncDataTemplate;
     }
 
     @Override
-    public DataTemplate<? extends ASQLContext<JavaPlugin>> getSyncDataTemplate() {
+    public DataTemplate<SyncDataAccessExecutor> getSyncDataTemplate() {
         return syncDataTemplate;
     }
 

@@ -7,6 +7,7 @@ import com.glyart.asql.common.database.DataSourceHandler;
 import com.glyart.asql.common.database.DataTemplate;
 import com.glyart.asql.common.defaults.AsyncDataAccessExecutor;
 import com.glyart.asql.common.defaults.DefaultDataSourceHandler;
+import com.glyart.asql.common.defaults.SyncDataAccessExecutor;
 import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,7 @@ public class BungeecordASQLContext implements ASQLContext<Plugin> {
     private final Plugin plugin;
     private final DataSourceCredentials credentials;
     private final DataSourceHandler dataSourceHandler;
-    private final DataTemplate<BungeecordASQLContext> dataTemplate;
+    private final DataTemplate<AsyncDataAccessExecutor> dataTemplate;
 
     protected BungeecordASQLContext(Plugin plugin, DataSourceCredentials credentials, DataSourceHandler dataSourceHandler) {
         this.plugin = plugin;
@@ -44,12 +45,12 @@ public class BungeecordASQLContext implements ASQLContext<Plugin> {
     }
 
     @Override
-    public DataTemplate<BungeecordASQLContext> getAsyncDataTemplate() {
+    public DataTemplate<AsyncDataAccessExecutor> getAsyncDataTemplate() {
         return dataTemplate;
     }
 
     @Override
-    public DataTemplate<? extends ASQLContext<Plugin>> getSyncDataTemplate() {
+    public DataTemplate<SyncDataAccessExecutor> getSyncDataTemplate() {
         throw new UnsupportedOperationException("This context doesn't support sync data templates");
     }
 

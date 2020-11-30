@@ -2,6 +2,8 @@ package com.glyart.asql.common.context;
 
 import com.glyart.asql.common.database.DataSourceHandler;
 import com.glyart.asql.common.database.DataTemplate;
+import com.glyart.asql.common.defaults.AsyncDataAccessExecutor;
+import com.glyart.asql.common.defaults.SyncDataAccessExecutor;
 
 import java.util.logging.Logger;
 
@@ -22,13 +24,13 @@ public interface ASQLContext<T> {
      * Gets the {@link DataTemplate} instance linked to this ASQLContext.
      * @return the data template related to this context
      */
-    DataTemplate<? extends ASQLContext<T>> getAsyncDataTemplate();
+    DataTemplate<AsyncDataAccessExecutor> getAsyncDataTemplate();
 
     /**
      * Gets the {@link DataTemplate} instance linked to this ASQLContext.
      * @return the data template related to this context
      */
-    DataTemplate<? extends ASQLContext<T>> getSyncDataTemplate();
+    DataTemplate<SyncDataAccessExecutor> getSyncDataTemplate();
 
     /**
      * Gets the data source interaction strategy linked to this ASQLContext.

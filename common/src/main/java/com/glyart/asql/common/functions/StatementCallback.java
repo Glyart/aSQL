@@ -1,5 +1,6 @@
 package com.glyart.asql.common.functions;
 
+import com.glyart.asql.common.database.DataAccessExecutor;
 import com.glyart.asql.common.database.DataTemplate;
 
 import java.sql.SQLException;
@@ -8,8 +9,8 @@ import java.sql.Statement;
 /**
  * Represents a callback interface for SQL statements.
  * It can execute multiple operations on a single Statement.
- * @param <T> The result type
- * @see DataTemplate#execute(StatementCallback)
+ * @param <T> the result type
+ * @see DataAccessExecutor#execute(StatementCallback)
  */
 public interface StatementCallback<T> {
 

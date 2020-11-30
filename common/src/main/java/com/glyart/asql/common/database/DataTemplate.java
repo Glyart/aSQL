@@ -24,7 +24,8 @@ import java.util.function.Function;
  *
  * <p>This class:
  * <ul>
- *     <li>works asynchronously, without overhead on the main thread</li>
+ *     <li>can work asynchronously, without overhead on the main thread</li>
+ *     <li>can work synchronously, may be useful for some scenarios</li>
  *     <li>executes all the <a href="https://en.wikipedia.org/wiki/Create,_read,_update_and_delete">CRUD</a> operations on a data source</li>
  *     <li>handles exceptions</li>
  *     <li>gives not null <b>{@link CompletableFuture} objects that WILL STORE usable future results</b></li>
@@ -34,10 +35,14 @@ import java.util.function.Function;
  *
  * <p>Methods of this class use various callback interfaces. A reading of those is greatly suggested.
  *
- * <p>There shouldn't be the need for using the public constructor. Getting an instance of this class by using {@link ASQLContext#getDataTemplate()}
- * should be enough.
- * <br> Since the callback interfaces make DataTemplate's methods parameterizable, there should be no need to subclass DataTemplate.
- * @param <T> The context who created this data template
+ * <p>There shouldn't be the need for using the public constructor. You should get a DataTemplate's instance by using:
+ * <ul>
+ *     <li>{@link ASQLContext#getAsyncDataTemplate()}</li>
+ *     <li>{@link ASQLContext#getSyncDataTemplate()}</li>
+ * </ul>
+ * Since the callback interfaces make DataTemplate's methods parameterizable, there should be no need to subclass DataTemplate.
+ * @param <T> the DataAccessExecutor which handles the data operations
+ * @see DataAccessExecutor
  * @see CompletableFuture
  * @see BatchPreparedStatementSetter
  * @see ParametrizedPreparedStatementSetter
@@ -48,11 +53,11 @@ import java.util.function.Function;
  * @see StatementCallback
  */
 @SuppressWarnings("unused")
-public class DataTemplate<T extends ASQLContext<?>> {
+public class DataTemplate<T extends DataAccessExecutor<? extends ASQLContext<?>>> {
 
-    private final DataAccessExecutor<ASQLContext<?>> dataAccessExecutor;
+    private final T dataAccessExecutor;
 
-    public DataTemplate(DataAccessExecutor<ASQLContext<?>> dataAccessExecutor) {
+    public DataTemplate(T dataAccessExecutor) {
         this.dataAccessExecutor = dataAccessExecutor;
     }
 

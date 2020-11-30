@@ -15,7 +15,7 @@ import java.util.List;
  *
  * <p>Implementations don't need to worry about handling exceptions:
  * they will be handled by aSQL DataTemplate and passed to a CompletableFuture for further analysis by the user.</p>
- * @param <T> yhe argument type
+ * @param <T> the argument type
  * @see DataTemplate#batchUpdate(String, List, ParametrizedPreparedStatementSetter)
  */
 public interface ParametrizedPreparedStatementSetter<T> {

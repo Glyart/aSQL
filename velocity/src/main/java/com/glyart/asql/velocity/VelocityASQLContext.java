@@ -5,6 +5,7 @@ import com.glyart.asql.common.context.ContextScheduler;
 import com.glyart.asql.common.database.DataSourceCredentials;
 import com.glyart.asql.common.database.DataSourceHandler;
 import com.glyart.asql.common.database.DataTemplate;
+import com.glyart.asql.common.defaults.AsyncDataAccessExecutor;
 import com.glyart.asql.common.defaults.DefaultDataSourceHandler;
 import com.glyart.asql.common.defaults.SyncDataAccessExecutor;
 import com.google.common.base.Preconditions;
@@ -28,7 +29,7 @@ public class VelocityASQLContext implements ASQLContext<Object> {
     private final Logger logger;
     private final DataSourceCredentials credentials;
     private final DataSourceHandler dataSourceHandler;
-    private final DataTemplate<VelocityASQLContext> dataTemplate;
+    private final DataTemplate<AsyncDataAccessExecutor> dataTemplate;
 
     protected VelocityASQLContext(ProxyServer server, Object plugin, Logger logger, DataSourceCredentials credentials, DataSourceHandler dataSourceHandler) {
         this.server = server;
@@ -39,7 +40,7 @@ public class VelocityASQLContext implements ASQLContext<Object> {
         if (asqlVelocityScheduler == null)
             asqlVelocityScheduler = new ASQLVelocityScheduler<>(server, plugin);
 
-        this.dataTemplate = new DataTemplate<>(new SyncDataAccessExecutor(this));
+        this.dataTemplate = new DataTemplate<>(new AsyncDataAccessExecutor(this));
     }
 
     @Override
@@ -48,12 +49,12 @@ public class VelocityASQLContext implements ASQLContext<Object> {
     }
 
     @Override
-    public DataTemplate<? extends ASQLContext<Object>> getAsyncDataTemplate() {
+    public DataTemplate<AsyncDataAccessExecutor> getAsyncDataTemplate() {
         return dataTemplate;
     }
 
     @Override
-    public DataTemplate<? extends ASQLContext<Object>> getSyncDataTemplate() {
+    public DataTemplate<SyncDataAccessExecutor> getSyncDataTemplate() {
         throw new UnsupportedOperationException("This context doesn't support sync data template");
     }
 

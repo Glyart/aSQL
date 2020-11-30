@@ -1,5 +1,6 @@
 package com.glyart.asql.common.functions;
 
+import com.glyart.asql.common.database.DataAccessExecutor;
 import com.glyart.asql.common.database.DataTemplate;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,15 +20,15 @@ import java.sql.SQLException;
  * <p>Implementations don't need to worry about handling exceptions:
  * they will be handled by aSQL DataTemplate and passed to a CompletableFuture for further analysis by the user.
  * @param <T> The result type
- * @see DataTemplate#execute(String, PreparedStatementCallback)
- * @see DataTemplate#execute(PreparedStatementCreator, PreparedStatementCallback)
+ * @see DataAccessExecutor#execute(String, PreparedStatementCallback)
+ * @see DataAccessExecutor#execute(PreparedStatementCreator, PreparedStatementCallback)
  */
 @FunctionalInterface
 public interface PreparedStatementCallback<T> {
 
     /**
-     * Gets called by {@link DataTemplate#execute(String, PreparedStatementCallback)}
-     * or {@link DataTemplate#execute(PreparedStatementCreator, PreparedStatementCallback)}.
+     * Gets called by {@link DataAccessExecutor#execute(String, PreparedStatementCallback)}
+     * or {@link DataAccessExecutor#execute(PreparedStatementCreator, PreparedStatementCallback)}.
      * <p><b>ATTENTION: any ResultSet should be closed within this callback implementation.
      * This method doesn't imply that the ResultSet (as other resources) will be closed.
      * Still, this method should grant (as shown in DataTemplate various implementations) that the statement will be closed at the end of the operations.</b>

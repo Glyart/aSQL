@@ -15,7 +15,7 @@ import java.sql.SQLException;
  *
  * <p>This interface can be used for query methods or for other custom implementations.</p><br>
  * A RowMapper object is reusable. Also, it's a convenient and fast way for implementing a row-mapping logic in a single spot.
- * @param <T> The result type
+ * @param <T> the result type
  * @see DataTemplate#queryForList(String, RowMapper)
  */
 @FunctionalInterface

@@ -9,14 +9,17 @@ import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
+/**
+ * <p>Represents a handling system for data access operations.</p>
+ * <p>This class is used by {@link DataTemplate} to execute data access operations.</p>
+ * @param <T> the ASQLContext which created this DataAccessExecutor
+ */
+@SuppressWarnings("unused")
 public abstract class DataAccessExecutor<T extends ASQLContext<?>> {
 
     protected final T context;
@@ -61,7 +64,34 @@ public abstract class DataAccessExecutor<T extends ASQLContext<?>> {
     public <S> CompletableFuture<S> execute(@NotNull String sql, @NotNull PreparedStatementCallback<S> callback) {
         return execute(new DefaultCreator(sql), callback);
     }
-    
+
+    protected <S> void doStatementExecute(Connection connection, StatementCallback<S> callback, CompletableFuture<S> future) {
+        Statement statement = null;
+        try {
+            statement = connection.createStatement();
+            S result = callback.doInStatement(statement);
+            future.complete(result);
+        } catch (SQLException e) {
+            future.completeExceptionally(e);
+        } finally {
+            closeStatement(statement);
+            closeConnection(connection);
+        }
+    }
+
+    protected <S> void doPreparedStatementExecute(Connection connection, PreparedStatementCreator creator, PreparedStatementCallback<S> callback, CompletableFuture<S> future) {
+        PreparedStatement ps = null;
+        try {
+            ps = creator.createPreparedStatement(connection);
+            future.complete(callback.doInPreparedStatement(ps));
+        } catch (SQLException e) {
+            future.completeExceptionally(e);
+        } finally {
+            closeStatement(ps);
+            closeConnection(connection);
+        }
+    }
+
     /**
      * Gets a connection using {@link DataSourceHandler}'s implementation.
      * This method's failures are fatal and definitely blocks {@link DataTemplate}'s access operations.
