@@ -2,8 +2,8 @@ package com.glyart.asql.common.context;
 
 import com.glyart.asql.common.database.DataSourceHandler;
 import com.glyart.asql.common.database.DataTemplate;
-import com.glyart.asql.common.defaults.AsyncDataAccessExecutor;
-import com.glyart.asql.common.defaults.SyncDataAccessExecutor;
+import com.glyart.asql.common.database.AsyncDataAccessExecutor;
+import com.glyart.asql.common.database.SyncDataAccessExecutor;
 
 import java.util.logging.Logger;
 

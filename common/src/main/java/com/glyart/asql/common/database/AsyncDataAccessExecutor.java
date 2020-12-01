@@ -1,7 +1,6 @@
-package com.glyart.asql.common.defaults;
+package com.glyart.asql.common.database;
 
 import com.glyart.asql.common.context.ASQLContext;
-import com.glyart.asql.common.database.DataAccessExecutor;
 import com.glyart.asql.common.functions.PreparedStatementCallback;
 import com.glyart.asql.common.functions.PreparedStatementCreator;
 import com.glyart.asql.common.functions.StatementCallback;
